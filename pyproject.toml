@@ -11,6 +11,11 @@ geocoder = "^1.38.1"
 geopy = "^2.4.1"
 timezonefinder = "^6.5.0"
 pytz = "^2024.1"
+streamlit = "^1.35.0"
+pysimplegui = "^5.0.4"
+pandas = "^2.2.2"
+geonamescache = "^2.0.0"
+ipdb = "^0.13.13"
 
 
 [build-system]
