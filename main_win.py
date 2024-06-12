@@ -68,15 +68,11 @@ class Mainwin:
 
         self.city_combobox = ttk.Combobox(self.root, values=sorted(self.sf.common_cities))
         self.city_combobox.pack(side=tk.TOP, padx=10, pady=10)
-        default_city = self.sf.file_settings.get(self.sf.DEFAULT_CITY, "")
-        if default_city != "" and default_city in self.sf.common_cities:
-                default_index = self.sf.common_cities.index(default_city)
-                self.city_combobox.current(default_index)
+        self.city_combobox.current(self.sf.get_default_city_index())
         self.city_combobox.bind("<FocusIn>", self.city_combolist_opened)
 
         self.get_weather_btn = tk.Button(self.root, text="Go", font=("Arial", 12), bg="skyblue", fg="navy", relief=tk.RAISED, bd=2,command=self.get_weather_btn)
         self.get_weather_btn.pack(side=tk.TOP,padx=10, pady=10)
-        # Response label
         self.city_weather_result = tk.Label(self.root, text="", anchor=tk.W ,justify=tk.LEFT, bg="lightblue")
         self.city_weather_result.pack(side=tk.TOP, padx=10, pady=10)
 

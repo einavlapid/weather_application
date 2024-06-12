@@ -14,4 +14,4 @@ capability to manage default settings and multiple favorite locations
 1. **streamlit:**
 use app.py
 2. **pycharm:**
-3. use main.py
+use main.py

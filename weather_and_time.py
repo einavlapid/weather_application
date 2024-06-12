@@ -54,6 +54,5 @@ def get_weather(city, api_key, temperature_unit):
 
         humidity = data["main"]['humidity']
         return f"The weather in {city} is {weather_description} with a temperature of {int(temperature)} {temperature_unit_sign} and humidity of {humidity}% "
-        # return f"The weather in {city} is {weather_description} with a temperature of {temperature}K and humidity of {humidity}% "
 
 
