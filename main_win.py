@@ -42,7 +42,8 @@ class Mainwin:
         weather = wt.get_weather(city, self.API_KEY, str(self.sf.default_temperature_units)[0])
         if weather != None:
             city_time = wt.get_formatted_time(wt.get_city_time(city), city)
-            user_time = wt.get_formatted_time(wt.get_user_time())
+            user_city = self.sf.get_user_city()
+            user_time = wt.get_formatted_time(wt.get_city_time(user_city), user_city) if user_city != "" else wt.get_formatted_time(wt.get_user_time())
             self.city_weather_result["text"] = f"{weather}\n {city_time}\n{user_time}"
             self.city_weather_result.anchor = tk.W
         else:

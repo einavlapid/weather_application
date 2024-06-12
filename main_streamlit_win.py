@@ -13,7 +13,9 @@ class MainStreamlitwin:
     city_weather_result = ""
     get_weather_btn = None
     selected_city = None
+    selected_city_page = ""
     title = None
+    first = True
     def __init__(self):
         self.sf.read_settings()
 
@@ -22,27 +24,22 @@ class MainStreamlitwin:
         self.st.title("User settings")
         default_city = self.st.text_input("Default city:",self.sf.get_default_city(),key="Default_city")
         user_city = self.st.text_input("User city:", self.sf.get_user_city(),key="user_city")
-        if self.sf.default_temperature_units == self.sf.FAHRENHEIT:
-            selected_temperature_units = self.st.selectbox('Select temerature unit', [self.sf.CELSIUS, self.sf.FAHRENHEIT], index=1, key= "selected_temperature_units")
-        else:
-            selected_temperature_units = self.st.selectbox('Select temerature unit', [self.sf.CELSIUS, self.sf.FAHRENHEIT], index=0, key="selected_temperature_units")
-
+        index_temperature_units = 1 if self.sf.default_temperature_units == self.sf.FAHRENHEIT else 0
+        selected_temperature_units = self.st.selectbox('Select temerature unit', [self.sf.CELSIUS, self.sf.FAHRENHEIT], index=index_temperature_units, key= "selected_temperature_units")
         col1, col2 = self.st.columns((5, 1))
         with col1:
-            if "updated_location" in self.st.session_state:
-                default_locations = self.st.multiselect("Location list:", sorted(self.st.session_state.updated_location),
-                                                  key="multiselect_key")
-            else:
-                default_locations = self.st.multiselect("Location list:", sorted(self.sf.common_cities),key="multiselect_key")
+            locations_list = sorted(self.st.session_state.updated_location) if "updated_location" in self.st.session_state else sorted(self.sf.common_cities)
+            default_locations = self.st.multiselect("Location list:", locations_list, key="multiselect_key")
 
         with col2:
             del_locations = self.st.button("Delete Selected")
             if default_locations and del_locations:
-                updated_locations = sorted([value for value in self.sf.common_cities if value not in default_locations])
-                self.sf.common_cities = updated_locations
+                locations_list = sorted(
+                    self.st.session_state.updated_location) if "updated_location" in self.st.session_state else sorted(
+                    self.sf.common_cities)
+                updated_locations = sorted([value for value in locations_list if value not in default_locations])
                 default_locations = []
                 self.st.session_state.updated_location = updated_locations
-                self.sf.save_settings(default_city, user_city, selected_temperature_units, self.sf.common_cities)
                 self.st.rerun()
 
 
@@ -55,42 +52,45 @@ class MainStreamlitwin:
         with col2:
             add_locations = self.st.button("Add")
             if add_locations and locations:
-                locations_list = locations.split(",")
-                for location in locations_list:
-                    location = location.lstrip()
-                    if location not in self.sf.common_cities:
-                        self.sf.common_cities.append(location)
+                add_locations_list = [location.lstrip() for location in locations.split(",") if location.lstrip() not in self.sf.common_cities]
+                locations_list = sorted(
+                    self.st.session_state.updated_location) if "updated_location" in self.st.session_state else sorted(
+                    self.sf.common_cities)
+                locations_list.extend(add_locations_list)
                 locations = ""
-                updated_locations = self.sf.common_cities
-                self.st.session_state.updated_location = updated_locations
-                self.sf.save_settings(default_city, user_city, selected_temperature_units, self.sf.common_cities)
+                self.st.session_state.updated_location = locations_list
                 self.st.rerun()
 
-
         save_changes = self.st.button("Save changes")
-
         if save_changes:
-            self.sf.save_settings(default_city, user_city, selected_temperature_units, self.sf.common_cities)
-
-
+            locations_list = sorted(
+                self.st.session_state.updated_location) if "updated_location" in self.st.session_state else sorted(
+                self.sf.common_cities)
+            self.sf.save_settings(default_city, user_city, selected_temperature_units, locations_list)
 
     def weather_win(self):
         self.sf.read_settings()
         self.st.title("Welcome to Weather application")
-        default_city_index = self.sf.get_default_city_index()
-        if default_city_index == -1:
-            default_city_index = 0
-        selected_city = self.st.selectbox('Select a city', self.sf.common_cities, index=default_city_index)
+        if MainStreamlitwin.first:
+            selected_city_idx = self.sf.get_default_city_index()
+            MainStreamlitwin.first = False
+        else:
+            selected_city_idx = self.sf.get_city_index(MainStreamlitwin.selected_city_page)
+        selected_city = self.st.selectbox('Select a city', self.sf.common_cities, index=selected_city_idx, key="selectbox_city")
+
         if selected_city:
-            weather = self.wt.get_weather(selected_city, self.API_KEY, str(self.sf.default_temperature_units)[0])
-            if weather:
-                self.st.write(weather)
-                city_time = self.wt.get_formatted_time(self.wt.get_city_time(selected_city), selected_city)
-                self.st.write(city_time)
-                user_time = self.wt.get_formatted_time(self.wt.get_user_time())
-                self.st.write(user_time)
-            else:
-                self.st.write("City not found, Please enter a valid city name.")
+            MainStreamlitwin.selected_city_page = selected_city
+            with self.st.spinner("Loading..."):
+                weather = self.wt.get_weather(selected_city, self.API_KEY, str(self.sf.default_temperature_units)[0])
+                if weather:
+                    self.st.write(weather)
+                    city_time = self.wt.get_formatted_time(self.wt.get_city_time(selected_city), selected_city)
+                    self.st.write(city_time)
+                    user_city = self.sf.get_user_city()
+                    user_time = self.wt.get_formatted_time(self.wt.get_city_time(user_city), user_city) if user_city != "" else self.wt.get_formatted_time(self.wt.get_user_time())
+                    self.st.write(user_time)
+                else:
+                    self.st.write("City not found, Please enter a valid city name.")
 
     def open_main_win(self):
         menu_selection = self.st.sidebar.radio("Go to", ["Weather application", "User setting"], index=0)

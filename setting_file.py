@@ -29,7 +29,13 @@ class SettingFile:
         if self.file_settings.get(self.DEFAULT_CITY, "") in self.common_cities != "":
             return self.common_cities.index(self.file_settings.get(self.DEFAULT_CITY, ""))
         else:
-            return -1
+            return 0
+
+    def get_city_index(self, city):
+        if city in self.common_cities != "":
+            return sorted(self.common_cities).index(city)
+        else:
+            return 0
 
     def read_settings(self):
         self.common_cities = []
