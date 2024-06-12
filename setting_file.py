@@ -71,10 +71,4 @@ class SettingFile:
         with open(self.FILE_NAME, 'w') as file:
             json.dump(self.file_settings, file)
 
-    @classmethod
-    def get_cities(self):
-        df = pd.read_csv(self.CITIES_DATASET_FILE)
-        cities = df.loc[df["capital"] == "primary"]["city"].sort_values()
-        return cities.tolist()
-
 
